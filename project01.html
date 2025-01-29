@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable Digital Clock</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .clock {
+            margin: 50px auto;
+            font-size: 3rem;
+            color: #333;
+            padding: 10px;
+            border: 2px solid #333;
+            display: inline-block;
+        }
+
+        .settings {
+            margin: 20px;
+        }
+
+        .settings label {
+            margin-right: 10px;
+        }
+
+        .alarm {
+            margin-top: 20px;
+        }
+
+        .alarm input {
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock" id="clock"></div>
+
+    <div class="settings">
+        <label for="timeFormat">Time Format:</label>
+        <select id="timeFormat">
+            <option value="12">12-Hour</option>
+            <option value="24">24-Hour</option>
+        </select>
+
+        <label for="color">Clock Color:</label>
+        <input type="color" id="color" value="#333333">
+
+        <label for="fontSize">Font Size:</label>
+        <input type="number" id="fontSize" value="48" min="10" max="100"> px
+    </div>
+
+    <div class="alarm">
+        <h3>Set Alarm</h3>
+        <input type="time" id="alarmTime">
+        <button id="setAlarm">Set Alarm</button>
+        <p id="alarmMessage"></p>
+    </div>
+
+    <script>
+        const clock = document.getElementById('clock');
+        const timeFormatSelect = document.getElementById('timeFormat');
+        const colorPicker = document.getElementById('color');
+        const fontSizeInput = document.getElementById('fontSize');
+        const alarmTimeInput = document.getElementById('alarmTime');
+        const setAlarmButton = document.getElementById('setAlarm');
+        const alarmMessage = document.getElementById('alarmMessage');
+
+        let alarmTime = null;
+
+        // Load preferences from localStorage
+        function loadPreferences() {
+            const timeFormat = localStorage.getItem('timeFormat') || '24';
+            const color = localStorage.getItem('color') || '#333333';
+            const fontSize = localStorage.getItem('fontSize') || '48';
+
+            timeFormatSelect.value = timeFormat;
+            colorPicker.value = color;
+            fontSizeInput.value = fontSize;
+
+            updateClockAppearance();
+        }
+
+        // Save preferences to localStorage
+        function savePreferences() {
+            localStorage.setItem('timeFormat', timeFormatSelect.value);
+            localStorage.setItem('color', colorPicker.value);
+            localStorage.setItem('fontSize', fontSizeInput.value);
+        }
+
+        // Update the clock's appearance
+        function updateClockAppearance() {
+            clock.style.color = colorPicker.value;
+            clock.style.fontSize = fontSizeInput.value + 'px';
+            savePreferences();
+        }
+
+        // Update the clock time
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            if (timeFormatSelect.value === '12') {
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12 || 12;
+                clock.textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
+            } else {
+                clock.textContent = `${String(hours).padStart(2, '0')}:${minutes}:${seconds}`;
+            }
+
+            checkAlarm(now);
+        }
+
+        // Check if the current time matches the alarm time
+        function checkAlarm(now) {
+            if (alarmTime) {
+                const [alarmHours, alarmMinutes] = alarmTime.split(':').map(Number);
+                if (now.getHours() === alarmHours && now.getMinutes() === alarmMinutes && now.getSeconds() === 0) {
+                    alert('Alarm ringing!');
+                    alarmMessage.textContent = '';
+                    alarmTime = null;
+                }
+            }
+        }
+
+        // Set the alarm
+        setAlarmButton.addEventListener('click', () => {
+            if (alarmTimeInput.value) {
+                alarmTime = alarmTimeInput.value;
+                alarmMessage.textContent = `Alarm set for ${alarmTime}`;
+            } else {
+                alert('Please select a valid alarm time.');
+            }
+        });
+
+        // Event listeners for customization inputs
+        timeFormatSelect.addEventListener('change', updateClock);
+        colorPicker.addEventListener('input', updateClockAppearance);
+        fontSizeInput.addEventListener('input', updateClockAppearance);
+
+        // Initialize
+        loadPreferences();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>

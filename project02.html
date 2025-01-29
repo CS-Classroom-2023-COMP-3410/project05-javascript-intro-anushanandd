@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive To-Do List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .todo-container {
+      max-width: 500px;
+      margin: auto;
+    }
+    .todo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .todo-header input {
+      width: 75%;
+      padding: 10px;
+      margin-right: 10px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f4f4f4;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: grab;
+    }
+    li.completed {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+    .controls {
+      display: flex;
+      gap: 5px;
+    }
+    .filter-buttons button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="todo-container">
+    <div class="todo-header">
+      <input type="text" id="new-task" placeholder="Add a new task...">
+      <button onclick="addTask()">Add</button>
+    </div>
+    <div class="filter-buttons">
+      <button onclick="filterTasks('all')">All</button>
+      <button onclick="filterTasks('completed')">Completed</button>
+      <button onclick="filterTasks('pending')">Pending</button>
+    </div>
+    <ul id="task-list"></ul>
+  </div>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    // Save tasks to localStorage
+    function saveTasks() {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // Render tasks
+    function renderTasks(filter = 'all') {
+      const taskList = document.getElementById('task-list');
+      taskList.innerHTML = '';
+      const filteredTasks = tasks.filter(task => {
+        if (filter === 'completed') return task.completed;
+        if (filter === 'pending') return !task.completed;
+        return true;
+      });
+
+      filteredTasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.className = task.completed ? 'completed' : '';
+        li.draggable = true;
+        li.ondragstart = (e) => dragStart(e, index);
+        li.ondragover = (e) => e.preventDefault();
+        li.ondrop = (e) => dropTask(e, index);
+
+        li.innerHTML = `
+          <span onclick="toggleComplete(${index})">${task.name}</span>
+          <div class="controls">
+            <button onclick="editTask(${index})">Edit</button>
+            <button onclick="deleteTask(${index})">Delete</button>
+          </div>
+        `;
+        taskList.appendChild(li);
+      });
+    }
+
+    // Add task
+    function addTask() {
+      const newTaskInput = document.getElementById('new-task');
+      const taskName = newTaskInput.value.trim();
+      if (taskName) {
+        tasks.push({ name: taskName, completed: false });
+        newTaskInput.value = '';
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    // Edit task
+    function editTask(index) {
+      const newName = prompt('Edit task:', tasks[index].name);
+      if (newName !== null) {
+        tasks[index].name = newName.trim();
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    // Delete task
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    }
+
+    // Toggle complete
+    function toggleComplete(index) {
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks();
+      renderTasks();
+    }
+
+    // Filter tasks
+    function filterTasks(filter) {
+      renderTasks(filter);
+    }
+
+    // Drag and drop
+    let draggedTaskIndex = null;
+
+    function dragStart(event, index) {
+      draggedTaskIndex = index;
+    }
+
+    function dropTask(event, dropIndex) {
+      const draggedTask = tasks[draggedTaskIndex];
+      tasks.splice(draggedTaskIndex, 1);
+      tasks.splice(dropIndex, 0, draggedTask);
+      saveTasks();
+      renderTasks();
+    }
+
+    // Initial render
+    renderTasks();
+  </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customizable Keyboard Trainer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .trainer-container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .target-text {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .highlighted-text {
+            font-size: 1.5em;
+            display: inline-block;
+        }
+        .input-text {
+            font-size: 1.2em;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .results {
+            margin-top: 15px;
+            font-size: 1.2em;
+        }
+        .controls {
+            margin-top: 15px;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="trainer-container">
+        <h1>Keyboard Trainer</h1>
+        <p class="target-text"><span id="highlighted-text" class="highlighted-text"></span></p>
+        <input type="text" id="input-text" class="input-text" disabled oninput="updateResults()">
+        <div class="results">
+            <p>WPM: <span id="wpm">0</span></p>
+            <p>Accuracy: <span id="accuracy">100</span>%</p>
+        </div>
+        <div class="controls">
+            <button onclick="startTraining()">Start</button>
+            <button onclick="resetTraining()">Reset</button>
+            <label for="difficulty">Difficulty:</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+    </div>
+
+    <script>
+        let startTime, interval, timerStarted = false;
+        let targetString = "";
+        const easySentences = [
+            "The sun is shining brightly.",
+            "She loves reading books.",
+            "I enjoy long walks in the park.",
+            "Birds are chirping outside.",
+            "He drinks coffee every morning."
+        ];
+        const mediumSentences = [
+            "The quick brown fox jumps over the lazy dog.",
+            "She decided to bake a cake for her friend.",
+            "Programming requires patience and practice.",
+            "Mountains look beautiful in the evening light.",
+            "He finished his assignment before the deadline."
+        ];
+        const hardSentences = [
+            "Artificial intelligence is revolutionizing modern industries.",
+            "The intricacies of quantum mechanics remain a mystery to many.",
+            "Creativity flourishes when given space to breathe and grow.",
+            "Understanding complex algorithms takes years of practice.",
+            "Exploring the vastness of the universe is a humbling experience."
+        ];
+        
+        function generateText(difficulty) {
+            let sentences = difficulty === "easy" ? easySentences : difficulty === "medium" ? mediumSentences : hardSentences;
+            return sentences[Math.floor(Math.random() * sentences.length)];
+        }
+        
+        function startTraining() {
+            let difficulty = document.getElementById("difficulty").value;
+            targetString = generateText(difficulty);
+            document.getElementById("highlighted-text").innerHTML = targetString;
+            document.getElementById("input-text").disabled = false;
+            document.getElementById("input-text").value = "";
+            document.getElementById("input-text").focus();
+            timerStarted = false;
+        }
+
+        function updateResults() {
+            let typed = document.getElementById("input-text").value;
+            if (!timerStarted) {
+                startTime = new Date();
+                timerStarted = true;
+            }
+            
+            let correct = 0;
+            let highlightedText = "";
+            
+            for (let i = 0; i < targetString.length; i++) {
+                if (i < typed.length) {
+                    if (typed[i] === targetString[i]) {
+                        highlightedText += `<span class='correct'>${targetString[i]}</span>`;
+                        correct++;
+                    } else {
+                        highlightedText += `<span class='incorrect'>${targetString[i]}</span>`;
+                    }
+                } else {
+                    highlightedText += targetString[i];
+                }
+            }
+            
+            document.getElementById("highlighted-text").innerHTML = highlightedText;
+            
+            let accuracy = typed.length > 0 ? (correct / typed.length) * 100 : 100;
+            let elapsed = (new Date() - startTime) / 1000 / 60; // Minutes
+            let wpm = typed.length > 0 ? Math.round((typed.split(" ").length) / elapsed) : 0;
+            
+            document.getElementById("accuracy").innerText = accuracy.toFixed(2);
+            document.getElementById("wpm").innerText = wpm;
+
+            if (typed.length >= targetString.length) {
+                document.getElementById("input-text").disabled = true;
+            }
+        }
+
+        function resetTraining() {
+            document.getElementById("highlighted-text").innerHTML = "";
+            document.getElementById("input-text").value = "";
+            document.getElementById("input-text").disabled = true;
+            document.getElementById("wpm").innerText = "0";
+            document.getElementById("accuracy").innerText = "100";
+            timerStarted = false;
+        }
+    </script>
+</body>
+</html>

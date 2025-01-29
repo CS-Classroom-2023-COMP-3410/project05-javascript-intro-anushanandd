@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Story Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .story-container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .choices {
+            margin-top: 20px;
+        }
+        .choices button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        .choices button:hover {
+            background-color: #0056b3;
+        }
+        .progress {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .controls {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="story-container">
+        <h2 id="story-text">Welcome to the adventure!</h2>
+        <div class="choices" id="choices"></div>
+        <div class="progress" id="progress"></div>
+        <div class="controls">
+            <button onclick="restartGame()">Restart</button>
+        </div>
+    </div>
+
+    <script>
+        const story = {
+            start: {
+                text: "You find yourself at a crossroads. Do you go left or right?",
+                choices: [
+                    { text: "Go left", next: "left_path" },
+                    { text: "Go right", next: "right_path" }
+                ]
+            },
+            left_path: {
+                text: "You encounter a river. Do you swim across or walk along the bank?",
+                choices: [
+                    { text: "Swim across", next: "swim_fail" },
+                    { text: "Walk along the bank", next: "bank_success" }
+                ]
+            },
+            right_path: {
+                text: "You enter a dark forest. Do you keep moving forward or turn back?",
+                choices: [
+                    { text: "Keep moving forward", next: "forest_success" },
+                    { text: "Turn back", next: "start" }
+                ]
+            },
+            swim_fail: {
+                text: "The river was too strong. You drowned. Restart?",
+                choices: [
+                    { text: "Restart", next: "start" }
+                ]
+            },
+            bank_success: {
+                text: "You find a bridge and safely cross. You win!",
+                choices: [
+                    { text: "Play again", next: "start" }
+                ]
+            },
+            forest_success: {
+                text: "You find treasure hidden in the trees. You win!",
+                choices: [
+                    { text: "Play again", next: "start" }
+                ]
+            }
+        };
+
+        function loadGame() {
+            const savedState = localStorage.getItem("storyProgress");
+            if (savedState) {
+                displayStory(JSON.parse(savedState));
+            } else {
+                displayStory("start");
+            }
+        }
+
+        function displayStory(storyKey) {
+            const currentScene = story[storyKey];
+            document.getElementById("story-text").textContent = currentScene.text;
+            const choicesDiv = document.getElementById("choices");
+            choicesDiv.innerHTML = "";
+
+            currentScene.choices.forEach(choice => {
+                const button = document.createElement("button");
+                button.textContent = choice.text;
+                button.onclick = () => {
+                    localStorage.setItem("storyProgress", JSON.stringify(choice.next));
+                    displayStory(choice.next);
+                };
+                choicesDiv.appendChild(button);
+            });
+            document.getElementById("progress").textContent = `Current step: ${storyKey}`;
+        }
+
+        function restartGame() {
+            localStorage.removeItem("storyProgress");
+            displayStory("start");
+        }
+
+        loadGame();
+    </script>
+</body>
+</html>

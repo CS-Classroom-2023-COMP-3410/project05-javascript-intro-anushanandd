@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+        }
+        .calculator {
+            width: 300px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .display {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.5rem;
+            text-align: right;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #eee;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        button {
+            padding: 15px;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .button-clear {
+            grid-column: span 4;
+            background-color: #dc3545;
+        }
+        .button-clear:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" id="display" class="display" disabled>
+        <div class="buttons">
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button onclick="setOperation('/')">/</button>
+
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button onclick="setOperation('*')">*</button>
+
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button onclick="setOperation('-')">-</button>
+
+            <button onclick="appendNumber('0')">0</button>
+            <button onclick="appendNumber('.')">.</button>
+            <button onclick="appendNegativeSign()">±</button>
+            <button onclick="setOperation('+')">+</button>
+
+            <button onclick="calculateSquareRoot()">√</button>
+            <button onclick="calculatePercentage()">%</button>
+            <button onclick="recallMemory()">MR</button>
+            <button onclick="calculateResult()">=</button>
+            <button onclick="clearDisplay()" class="button-clear">C</button>
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let currentInput = '';
+        let memory = 0;
+        let equation = '';
+
+        function appendNumber(number) {
+            currentInput += number;
+            equation += number;
+            updateDisplay();
+        }
+
+        function appendNegativeSign() {
+            if (currentInput.startsWith('-')) {
+                currentInput = currentInput.slice(1);
+                equation = equation.slice(0, -currentInput.length - 1) + currentInput;
+            } else {
+                currentInput = '-' + currentInput;
+                equation = equation.slice(0, -currentInput.length + 1) + currentInput;
+            }
+            updateDisplay();
+        }
+
+        function setOperation(operation) {
+            if (currentInput === '') return;
+            equation += ` ${operation} `;
+            currentInput = '';
+            updateDisplay();
+        }
+
+        function calculateResult() {
+            try {
+                let result = eval(equation);
+                if (!isFinite(result)) throw 'Error';
+                equation = result.toString();
+            } catch {
+                equation = 'Error';
+            }
+            updateDisplay();
+        }
+
+        function calculateSquareRoot() {
+            try {
+                let result = Math.sqrt(parseFloat(currentInput));
+                if (isNaN(result)) throw 'Error';
+                equation = result.toString();
+            } catch {
+                equation = 'Error';
+            }
+            updateDisplay();
+        }
+
+        function calculatePercentage() {
+            try {
+                let result = parseFloat(currentInput) / 100;
+                equation = result.toString();
+            } catch {
+                equation = 'Error';
+            }
+            updateDisplay();
+        }
+
+        function recallMemory() {
+            equation = memory.toString();
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentInput = '';
+            equation = '';
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            display.value = equation || '0';
+        }
+    </script>
+</body>
+</html>
